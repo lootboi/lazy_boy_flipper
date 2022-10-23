@@ -112,6 +112,17 @@ def trending_collections():
         print()
     pblue('Would you like to do something else?')
 
+def parse_attributes(item_attributes):
+    pblue('Item Attributes:')
+    for i  in  range(len(item_attributes)):
+        pblue(item_attributes[i]['traitType'] + ': ' + white + item_attributes[i]['value'] + yellow + ' (Rarity: ' + str(float(item_attributes[i]['countPercentage']) * float(100)) + '%)')
+    print()
+
+def get_collection_supply(_collection):
+    item_info = requests.get('https://api.joepegs.dev/v2/collections/' + _collection)
+    collection_supply = item_info['numItems']
+    return collection_supply
+
 def get_item_info(collection, id_number):
     print()
     pblue('Finding Item Info...')
@@ -121,7 +132,7 @@ def get_item_info(collection, id_number):
     item_floor = convert_ether(item_info['floorPrice'])
     item_owner = item_info['owner']['ownerId']
     item_owner_total = item_info['owner']['quantity']
-
+    item_attributes = item_info['metadata']['attributes']
     if item_info['rarityScore'] == 0.0:
         item_rarity =  red + 'No Rarity Score'
     else:
@@ -137,29 +148,27 @@ def get_item_info(collection, id_number):
     else:
         item_current_ask = convert_ether((item_info['currentAsk']['price']))
 
+    item_rarity_percentage = item_ranking / get_collection_supply(item_info['collection']) * 100
+
     pblue('Item Name: ' + white + item_name + ' #' + id_number)
+    print()
+    parse_attributes(item_attributes)
     pblue('Item Rarity: ' + white + str(item_rarity))
-    pblue('Item Ranking: ' + white + str(item_ranking))
+    pblue('Item Ranking: ' + white + str(item_ranking) + yellow + ' (' + str('%.2f' % item_rarity_percentage) + '%)')
     pblue('Item Floor: ' + white + str(item_floor) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(item_floor) * get_avax_price())) + ')')
     pblue('Item Current Ask: ' + white + str(item_current_ask) + ' AVAX')
     pblue('Item Owner: ' + white + str(item_owner) + yellow + ' (Owns ' + str(item_owner_total) + ' total)')
 
-    def sort_by_attribute(_collection, _item_id, _attribute):
-        print()
-        pblue('Sorting by ' + _attribute + '...')
-        print()
-        # item_info = requests.get('https://api.joepegs.dev/v2/items/' + _collection + '/tokens/' + _item_id, headers=headers).json()
-        
+def sort_by_attribute(_collection, _item_id, _attribute):
+    print()
+    pblue('Sorting by ' + _attribute + '...')
+    print()
+    # item_info = requests.get('https://api.joepegs.dev/v2/items/' + _collection + '/tokens/' + _item_id, headers=headers).json()
     
-    def get_collection_by_attribute():
-        print()
-        pblue('Search by Attribute')
-        _collection = get_collection_info()
-        _item_id = get_collection_item()
-        _attribute = get_collection_by_attribute()
-        sort_by_attribute(_collection, _item_id, _attribute)
-
-
-
-
-    
+def get_collection_by_attribute():
+    print()
+    pblue('Search by Attribute')
+    _collection = get_collection_info()
+    _item_id = get_collection_item()
+    _attribute = get_collection_by_attribute()
+    sort_by_attribute(_collection, _item_id, _attribute)    
