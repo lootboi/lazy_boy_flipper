@@ -1,5 +1,9 @@
 from colors import pblue, pyellow, pwhite, yellow, blue, white
 
+#####################
+#      Menu Art     #
+#####################
+
 def menu():
     print()
     pblue('                  looter_')
@@ -21,6 +25,10 @@ def menu():
     pblue('Flip NFTs on the AVAX network' + '         Version: ' + white + '1.0.0')
     pyellow('----------------------------------------------------')
 
+#################################
+#      Initial Menu Options     #
+#################################
+
 def menu_options():
     print()
     pyellow('Please select an option:')
@@ -32,6 +40,10 @@ def menu_options():
 
     response = input('Select option: ')
     return response
+
+#####################################
+#      Collections options Menu     #
+#####################################
 
 def collections_info_options():
     print()
@@ -47,18 +59,30 @@ def collections_info_options():
     response = input('Select option: ')
     return response
 
-def get_collection_info():
+##########################################
+#      User input Collection Address     #
+##########################################
+
+def get_collection_address_user():
     print()
     pyellow('Please enter the collection Address:' + white)
 
     response = input('Enter Collection Address: ')
     return response
 
+###############################
+#      User input Item ID     #
+###############################
+
 def get_collection_item():
     print()
     pyellow('Please enter the collection Item ID:' + white)
     id_number = input('Enter Item ID: ')
     return id_number
+
+###########################################
+#      User input Collection Attribute    #
+###########################################
 
 def get_collection_by_attribute():
     print()
