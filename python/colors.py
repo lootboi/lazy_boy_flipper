@@ -28,3 +28,4 @@ white = Fore.WHITE
 blue = Fore.BLUE
 green = Fore.GREEN
 yellow = Fore.YELLOW
+lgreen = Fore.LIGHTGREEN_EX

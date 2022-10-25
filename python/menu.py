@@ -84,8 +84,20 @@ def get_collection_item():
 #      User input Collection Attribute    #
 ###########################################
 
-def get_collection_by_attribute():
+def get_attribute():
     print()
-    pyellow('Please enter the collection attribute you want to look for:' + white)
+    pyellow('Please enter the collection Attribute you want to look for:\n(Match Casing For Successful Query)' + white)
     attribute = input('Enter Attribute: ')
+
     return attribute
+
+###########################################
+#         User input Attribute Value      #
+###########################################
+
+def get_attribute_value():
+    print()
+    pyellow('Please enter the collection Attribute Type you want to look for:\n(Match Casing For Successful Query)' + white)
+    attribute_value = input('Enter Attribute Value: ')
+
+    return attribute_value

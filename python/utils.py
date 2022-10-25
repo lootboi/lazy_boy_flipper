@@ -1,5 +1,5 @@
-from menu       import get_collection_address_user, collections_info_options, get_collection_item
-from colors     import pblue, pred, white, yellow, red
+from menu       import get_collection_address_user, collections_info_options, get_collection_item, get_attribute, get_attribute_value
+from colors     import pblue, pred, white, yellow, red, pyellow, lgreen
 from dotenv     import load_dotenv
 from web3       import Web3
 
@@ -45,10 +45,11 @@ def query_collection_info(collection_response):
     pblue('Querying Collection Info...')
     print()
     # Basic Collection Info
-    collection_info = requests.get('https://api.joepegs.dev/v2/collections/' + collection_response + '/?filterBy=1d', headers=headers).json()
+    collection_info = requests.get('https://api.joepegs.dev/v2/collections/' + collection_response + '?filterBy=1d', headers=headers).json()
     collection_name = collection_info['name']
     collection_description = collection_info['description']
     collection_supply = collection_info['numItems']
+    collection_website = collection_info['websiteUrl']
 
     # Collection Volume Info
     collection_floor = convert_ether(collection_info['floor'])
@@ -69,19 +70,29 @@ def query_collection_info(collection_response):
     collection_total_volume_usd = float(collection_total_volume) * avax_price
 
     # Output
-    pred('TEST: ' + str(collection_percent_listed))
     pblue('Collection Name: ' + white + str(collection_name))
     pblue('Collection Description: ' + white + str(collection_description))
     pblue('Collection Holders: ' + white + str(collection_num_owners))
     print()
     pblue('Collection Total Sales: ' + white + str(collection_num_sales))
-    pblue('Collection Listings: ' + white + str(collection_num_listed)) + yellow + ' (' + str('%.2f' % collection_percent_listed) + '% of Collection Supply)'
+    pblue('Collection Listings: ' + white + str(collection_num_listed) + yellow + ' (' + str(collection_percent_listed) + '%' + ' of Collection Supply)')
     pblue('Collection Floor: ' + white + '%.2f' % collection_floor + ' AVAX ' + yellow + '($' + str('%.2f' % collection_floor_usd) + ')')
     pblue('Collection Total Volume: ' + white + '%.2f' % collection_total_volume + ' AVAX ' + yellow + '($' + str('%.2f' % collection_total_volume_usd) + ')')
-    pblue('Collection Volume 24H Change: ' + white + str(collection_volume_delta) + '%')
-    pblue('Collection Floor 24H Change: ' + white + str(collection_floor_delta) + '%')
+    if collection_volume_delta != None:
+        pblue('Collection Volume 24H Change: ' + white + str(collection_volume_delta) + '%')
+    else:
+        pred('24 Hour Volume Change is null')
+    if collection_floor_delta != None:
+        pblue('Collection Floor 24H Change: ' + white + str(collection_floor_delta) + '%')
+    else:
+        pred('24 Hour Floor Change is null')
     print()
     pblue('Collection Marketplace Link: ' + white + 'https://joepegs.com/collections/' + convert_url(collection_name))
+    if collection_website != None:
+        pblue('Collection Website: ' + white + str(collection_website))
+    else:
+        pred('No Website Listed')
+    print()
 
 ############################
 #   Collection Info Menu   #
@@ -105,6 +116,8 @@ def collection_info():
         item_id = get_collection_item()
         get_item_info(collection_address, item_id)
     if menu_response == '3':
+        get_collection_by_attribute()
+    if menu_response == '4':
         print('Exiting...')
         exit()
 
@@ -181,11 +194,6 @@ def get_item_info(collection, id_number):
     else:
         item_ranking = item_info['rarityRanking']
 
-    if item_info['currentAsk'] == None:
-        item_current_ask = red + 'Not currently Listed for'
-    else:
-        item_current_ask = convert_ether((item_info['currentAsk']['price']))
-
     item_collection = requests.get('https://api.joepegs.dev/v2/collections/' + collection, headers=headers).json()
     collection_supply = item_collection['numItems']
 
@@ -200,7 +208,12 @@ def get_item_info(collection, id_number):
     pblue('Item Rarity: ' + white + str(item_rarity) if item_rarity != red + 'No Rarity Ranking' else item_rarity_percentage + '%')
     pblue('Item Ranking: ' + white + str(item_ranking) + '/' + str(collection_supply) + yellow + ' (' + str('%.2f' % item_rarity_percentage) + '%)')
     pblue('Item Floor: ' + white + str(item_floor) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(item_floor) * get_avax_price())) + ')')
-    pblue('Item Current Ask: ' + white + str(item_current_ask) + ' AVAX'+ yellow + ' ($' + str('%.2f' % (float(item_current_ask) * get_avax_price())) + ')')
+    if item_info['currentAsk'] == None:
+        item_current_ask = red + 'Not currently Listed'
+        pblue('Item Current Ask: ' + item_current_ask)
+    else:
+        item_current_ask = convert_ether((item_info['currentAsk']['price']))
+        pblue('Item Current Ask: ' + white + str(item_current_ask) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(item_current_ask) * get_avax_price())) + ')')
     pblue('Item Highest Bid: ' + white + str(convert_ether(int(item_highest_bid))) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(convert_ether(int(item_highest_bid))) * get_avax_price())) + ')')
     pblue('Item Owner: ' + white + str(item_owner) + yellow + ' (Owns ' + str(item_owner_total) + ' total)')
 
@@ -208,11 +221,54 @@ def get_item_info(collection, id_number):
 #   Sort Collection by Attribute   #
 ####################################
 
-def sort_by_attribute(_collection, _item_id, _attribute):
+def sort_by_attribute(_collection, _attribute):
+    for item in _collection:
+        for attribute in item['metadata']['attributes']:
+            if attribute['traitType'] == _attribute:
+                print(attribute['value'])
+
+################################
+#    Get Collection Buy Now    #
+################################  
+
+def list_collection_buy_now(_collection_address):
+    collection_listed = requests.get('https://api.joepegs.dev/v2/items?filters=buy_now&orderBy=rarity_desc&collectionAddress=' + _collection_address, headers=headers).json()
+    return collection_listed
+
+##################################
+#    Get Collection Attributs    #
+##################################
+
+def get_collection_attributes(_collection_address):
+    collection_attributes = requests.get('https://api.joepegs.dev/v2/collections/' + _collection_address, headers=headers).json()
     print()
-    pblue('Sorting by ' + _attribute + '...')
-    print()
-    # item_info = requests.get('https://api.joepegs.dev/v2/items/' + _collection + '/tokens/' + _item_id, headers=headers).json()
+    pyellow(collection_attributes['name'] + ' Attributes:')
+    for attribute in collection_attributes['attributes']:
+        pblue('Attribute: ' + white + attribute['traitType'])
+
+###################################
+#    Get Collection Overview      #
+###################################
+
+def get_collection_overview(_collection_address):
+    collection_overview = requests.get('https://api.joepegs.dev/v2/collections/' + _collection_address, headers=headers).json()
+    return collection_overview
+
+####################################
+#      Get Attribute Types         #
+####################################
+
+def get_values(_collection_address, _attribute):
+    collection = get_collection_overview(_collection_address)
+    collection_supply = collection['numItems']
+    for trait_type in collection['attributes']:
+        if trait_type['traitType'] == _attribute:
+            print()
+            pyellow(_attribute + ' Types:')
+            for value in trait_type['values']:
+                pblue('Type: ' + white + value['value'] + yellow + ' - ' + str(value['count']) + ' item(s)' + lgreen + ' [' + str('%.2f' % (float(value['count']) / float(collection_supply) * 100)) + '%]')
+    
+
 
 ################################
 #   Query User for Item Info   #
@@ -221,7 +277,10 @@ def sort_by_attribute(_collection, _item_id, _attribute):
 def get_collection_by_attribute():
     print()
     pblue('Search by Attribute')
-    _collection = get_collection_address_user()
-    _item_id = get_collection_item()
-    _attribute = get_collection_by_attribute()
-    sort_by_attribute(_collection, _item_id, _attribute)    
+    _collection_address = get_collection_address_user()
+    _collection = list_collection_buy_now(_collection_address)
+    get_collection_attributes(_collection_address)
+    _attribute = get_attribute()
+    _attribute_values = get_values(_collection_address, _attribute)
+    _attribute_value = get_attribute_value()
+    sort_by_attribute(_collection, _attribute)

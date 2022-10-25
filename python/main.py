@@ -1,7 +1,7 @@
 from connection_status  import check_status_code, test_response
 from colors             import pred, pblue
-from menu               import menu, menu_options, get_collection_address_user, get_collection_item, get_collection_by_attribute
-from utils              import collection_info, trending_collections
+from menu               import menu, menu_options, get_collection_address_user, get_collection_item
+from utils              import collection_info, trending_collections, get_collection_by_attribute
 
 ######################
 #   Print menu Art   #
