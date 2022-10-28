@@ -5,6 +5,7 @@ from web3       import Web3
 
 import os
 import requests
+import urllib.parse
 
 # Load .env file
 load_dotenv()
@@ -217,15 +218,22 @@ def get_item_info(collection, id_number):
     pblue('Item Highest Bid: ' + white + str(convert_ether(int(item_highest_bid))) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(convert_ether(int(item_highest_bid))) * get_avax_price())) + ')')
     pblue('Item Owner: ' + white + str(item_owner) + yellow + ' (Owns ' + str(item_owner_total) + ' total)')
 
+def parse_fs_by_attribute(_query_response):
+    print(_query_response)       
+
+def query_collection_fs_by_attribute(_collection_address, _encoded_attributes):
+    fs_by_attribute = requests.get('https://api.joepegs.dev/v2/items?collectionAddress=' + _collection_address + '&filters=buy_now&attributeFilters=' + _encoded_attributes, headers=headers).json()
+    parse_fs_by_attribute(fs_by_attribute)
+
 ####################################
 #   Sort Collection by Attribute   #
 ####################################
 
-def sort_by_attribute(_collection, _attribute):
-    for item in _collection:
-        for attribute in item['metadata']['attributes']:
-            if attribute['traitType'] == _attribute:
-                print(attribute['value'])
+def encode_attributes(_collection_address, _attribute, _attribute_value):
+    attributes = str([{"traitType":_attribute,"values":[_attribute_value]}])
+    _encoded_attributes = urllib.parse.quote(attributes)
+    print(_encoded_attributes)
+    query_collection_fs_by_attribute(_collection_address, _encoded_attributes)
 
 ################################
 #    Get Collection Buy Now    #
@@ -268,8 +276,6 @@ def get_values(_collection_address, _attribute):
             for value in trait_type['values']:
                 pblue('Type: ' + white + value['value'] + yellow + ' - ' + str(value['count']) + ' item(s)' + lgreen + ' [' + str('%.2f' % (float(value['count']) / float(collection_supply) * 100)) + '%]')
     
-
-
 ################################
 #   Query User for Item Info   #
 ################################
@@ -278,9 +284,8 @@ def get_collection_by_attribute():
     print()
     pblue('Search by Attribute')
     _collection_address = get_collection_address_user()
-    _collection = list_collection_buy_now(_collection_address)
     get_collection_attributes(_collection_address)
     _attribute = get_attribute()
-    _attribute_values = get_values(_collection_address, _attribute)
+    get_values(_collection_address, _attribute)
     _attribute_value = get_attribute_value()
-    sort_by_attribute(_collection, _attribute)
+    encode_attributes(_collection_address, _attribute, _attribute_value)
