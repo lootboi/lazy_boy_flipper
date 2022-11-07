@@ -27,7 +27,7 @@ def select_start_option():
         pblue('Exiting...')
         exit()
     else:
-        pred('Invalid option selected')
+        pred('\nInvalid option selected')
         select_start_option()
 
 select_start_option()

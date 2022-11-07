@@ -37,7 +37,6 @@ def menu_options():
     pwhite('3) Search for Collection')
     pwhite('4) Exit')
     print()
-
     response = input('Select option: ')
     return response
 
@@ -55,7 +54,6 @@ def collections_info_options():
     pwhite('3) View collection Items based on attribute')
     pwhite('4) Exit')
     print()
-
     response = input('Select option: ')
     return response
 
@@ -66,7 +64,6 @@ def collections_info_options():
 def get_collection_address_user():
     print()
     pyellow('Please enter the collection Address:' + white)
-
     response = input('Enter Collection Address: ')
     return response
 
@@ -88,7 +85,6 @@ def get_attribute():
     print()
     pyellow('Please enter the collection Attribute you want to look for:\n(Match Casing For Successful Query)' + white)
     attribute = input('Enter Attribute: ')
-
     return attribute
 
 ###########################################
@@ -99,5 +95,4 @@ def get_attribute_value():
     print()
     pyellow('Please enter the collection Attribute Type you want to look for:\n(Match Casing For Successful Query)' + white)
     attribute_value = input('Enter Attribute Value: ')
-
     return attribute_value

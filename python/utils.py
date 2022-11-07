@@ -64,7 +64,6 @@ def query_collection_info(collection_response):
     collection_num_sales = collection_info['numSales']
     collection_percent_listed = (collection_num_listed / collection_supply) * 100
 
-
     # USD Price Info
     avax_price = get_avax_price()
     collection_floor_usd = float(collection_floor) * avax_price
@@ -108,6 +107,7 @@ def collection_info():
         if w3.isAddress(collection_response):
             print()
             query_collection_info(collection_response)
+            collection_info()
         else:
             pred('Invalid Address - Try Again')
             get_collection_address_user()
@@ -116,11 +116,16 @@ def collection_info():
         collection_address = get_collection_address_user()
         item_id = get_collection_item()
         get_item_info(collection_address, item_id)
+        collection_info()
     if menu_response == '3':
         get_collection_by_attribute()
+        collection_info()
     if menu_response == '4':
         print('Exiting...')
         exit()
+    if menu_response != '1' or '2' or '3' or '4':
+        pred('\nInvalid Response - Try Again')
+        collection_info()
 
 ########################################
 #   Convert Collection Names for URL   #
@@ -204,9 +209,8 @@ def get_item_info(collection, id_number):
         item_rarity_percentage = float(item_ranking) / float(collection_supply) * 100
 
     pblue('Item Name: ' + white + item_name + ' #' + id_number)
-    print()
     parse_attributes(item_attributes)
-    pblue('Item Rarity: ' + white + str(item_rarity) if item_rarity != red + 'No Rarity Ranking' else item_rarity_percentage + '%')
+    pblue('\nItem Rarity: ' + white + str(item_rarity) if item_rarity != red + 'No Rarity Ranking' else item_rarity_percentage + '%')
     pblue('Item Ranking: ' + white + str(item_ranking) + '/' + str(collection_supply) + yellow + ' (' + str('%.2f' % item_rarity_percentage) + '%)')
     pblue('Item Floor: ' + white + str(item_floor) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(item_floor) * get_avax_price())) + ')')
     if item_info['currentAsk'] == None:
@@ -218,21 +222,53 @@ def get_item_info(collection, id_number):
     pblue('Item Highest Bid: ' + white + str(convert_ether(int(item_highest_bid))) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(convert_ether(int(item_highest_bid))) * get_avax_price())) + ')')
     pblue('Item Owner: ' + white + str(item_owner) + yellow + ' (Owns ' + str(item_owner_total) + ' total)')
 
+###################################
+# Get items for sale by attribute #
+###################################
+#NOTE: 
+# - Add in functionality to compare current askPrice to the floor price
+
 def parse_fs_by_attribute(_query_response):
-    print(_query_response)       
+    pblue('Results for ' + collection_info['name'])
+    avax_price = get_avax_price()
+    if len(_query_response) == 0:
+        pred('\nNo Items Found')
+    else:
+        for item in _query_response:
+            collection_name = item['collectionName']
+            item_id = item['tokenId']
+            item_ranking = item['rarityRanking']
+            item_price = convert_ether(item['currentAsk']['price'])
+            item_bid = convert_ether(item['bestBid']['price'])
+            item_sale_id = item['currentAsk']['id']
+            pblue('\nCollection Name: ' + white + collection_name + ' #' + str(item_id))
+            # pblue('Collection Floor: ' + white + str(collection_floor) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(collection_floor) * get_avax_price())) + ')')
+            if item_ranking == None:
+                pblue('Item Ranking: ' + red + 'No Rarity Ranking')
+            else:    
+                pblue('Item Ranking: ' + white + str(item_ranking))
+            pblue('Item Price: ' + white + str(item_price) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(item_price) * avax_price)) + ')')
+            if item_bid == None:
+                pblue('Item Highest Bid: ' + red + 'No Bids')
+            else:
+                pblue('Item Highest Bid: ' + white + str(item_bid) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(item_bid) * avax_price)) + ')')
+            pblue('Item Sale ID: ' + white + str(item_sale_id))
+
+########################################
+#  Get Specific Item Info by Attribute #
+########################################        
 
 def query_collection_fs_by_attribute(_collection_address, _encoded_attributes):
-    fs_by_attribute = requests.get('https://api.joepegs.dev/v2/items?collectionAddress=' + _collection_address + '&filters=buy_now&attributeFilters=' + _encoded_attributes, headers=headers).json()
+    fs_by_attribute = requests.get('https://api.joepegs.dev/v2/items?collectionAddress=' + _collection_address + '&filters=buy_now&orderBy=price_asc&attributeFilters=' + _encoded_attributes, headers=headers).json()
     parse_fs_by_attribute(fs_by_attribute)
 
-####################################
-#   Sort Collection by Attribute   #
-####################################
+###############################
+#   Encode attribute filter   #
+###############################
 
 def encode_attributes(_collection_address, _attribute, _attribute_value):
-    attributes = str([{"traitType":_attribute,"values":[_attribute_value]}])
-    _encoded_attributes = urllib.parse.quote(attributes)
-    print(_encoded_attributes)
+    attribute_filter = '[{"traitType": "' + _attribute + '", "values":["' + _attribute_value + '"]}]'
+    _encoded_attributes = urllib.parse.quote(attribute_filter)
     query_collection_fs_by_attribute(_collection_address, _encoded_attributes)
 
 ################################
@@ -265,6 +301,8 @@ def get_collection_overview(_collection_address):
 ####################################
 #      Get Attribute Types         #
 ####################################
+#NOTE:
+# - Allow users to input numbers to select attribute type
 
 def get_values(_collection_address, _attribute):
     collection = get_collection_overview(_collection_address)
@@ -279,6 +317,9 @@ def get_values(_collection_address, _attribute):
 ################################
 #   Query User for Item Info   #
 ################################
+#NOTE:
+# - Add in functionality to allow searches with multiple attributes
+# - Add in functionality to allow searches with multiple values for a single attribute
     
 def get_collection_by_attribute():
     print()
