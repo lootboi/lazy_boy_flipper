@@ -154,13 +154,15 @@ def trending_collections():
     pblue('Finding Trending Collections...')
     print()
     trending_collections = requests.get('https://api.joepegs.dev/v2/collections/trending/', headers=headers).json()
+    avax_price = get_avax_price()
     for collection in trending_collections:
         pblue(collection['collectionName'] + ' - ' + yellow +  collection['collectionId'])
         pblue('Collection MarketPlace Link: ' + white + 'https://joepegs.com/collections/' + convert_url(collection['collectionName']))
         website = get_collection_website(collection['collectionId'])
         pblue('Collection Website: ' + white + str(website))
         pblue('# of Items: ' + white + str(collection['numItems']))
-        pblue('Floor: ' + white + str(convert_ether(int(collection['floorPrice']))) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(convert_ether(int(collection['floorPrice']))) * get_avax_price())) + ')')
+        pblue('Floor: ' + white + str(convert_ether(int(collection['floorPrice']))) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(convert_ether(int(collection['floorPrice']))) * avax_price
+        )) + ')')
         print()
     pblue('Would you like to do something else?')
 
@@ -189,6 +191,7 @@ def get_item_info(collection, id_number):
     item_owner_total = item_info['owner']['quantity']
     item_attributes = item_info['metadata']['attributes']
     item_highest_bid = int(item_info['bestBid']['price'])
+    avax_price = get_avax_price()
 
     if item_info['rarityScore'] == 0.0:
         item_rarity =  red + 'No Rarity Score'
@@ -212,54 +215,62 @@ def get_item_info(collection, id_number):
     parse_attributes(item_attributes)
     pblue('\nItem Rarity: ' + white + str(item_rarity) if item_rarity != red + 'No Rarity Ranking' else item_rarity_percentage + '%')
     pblue('Item Ranking: ' + white + str(item_ranking) + '/' + str(collection_supply) + yellow + ' (' + str('%.2f' % item_rarity_percentage) + '%)')
-    pblue('Item Floor: ' + white + str(item_floor) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(item_floor) * get_avax_price())) + ')')
+    pblue('Item Floor: ' + white + str(item_floor) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(item_floor) * avax_price)) + ')')
     if item_info['currentAsk'] == None:
         item_current_ask = red + 'Not currently Listed'
         pblue('Item Current Ask: ' + item_current_ask)
     else:
         item_current_ask = convert_ether((item_info['currentAsk']['price']))
-        pblue('Item Current Ask: ' + white + str(item_current_ask) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(item_current_ask) * get_avax_price())) + ')')
-    pblue('Item Highest Bid: ' + white + str(convert_ether(int(item_highest_bid))) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(convert_ether(int(item_highest_bid))) * get_avax_price())) + ')')
+        pblue('Item Current Ask: ' + white + str(item_current_ask) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(item_current_ask) * avax_price)) + ')')
+    pblue('Item Highest Bid: ' + white + str(convert_ether(int(item_highest_bid))) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(convert_ether(int(item_highest_bid))) * avax_price)) + ')')
     pblue('Item Owner: ' + white + str(item_owner) + yellow + ' (Owns ' + str(item_owner_total) + ' total)')
 
 ###################################
 # Get items for sale by attribute #
 ###################################
-#NOTE: 
-# - Add in functionality to compare current askPrice to the floor price
 
 def parse_fs_by_attribute(_query_response):
-    pblue('Results for ' + collection_info['name'])
     avax_price = get_avax_price()
+    item_num = 0
     if len(_query_response) == 0:
         pred('\nNo Items Found')
     else:
+        collection_info = requests.get('https://api.joepegs.dev/v2/collections/' + _query_response[0]['collection'], headers=headers).json()
+        collection_floor = convert_ether(collection_info['floor'])
+        collection_address = collection_info['address']
+        total_items = len(_query_response)
         for item in _query_response:
             collection_name = item['collectionName']
             item_id = item['tokenId']
             item_ranking = item['rarityRanking']
             item_price = convert_ether(item['currentAsk']['price'])
+            avax_difference = float(item_price) - float(collection_floor)
+            usd_difference = avax_difference * avax_price
             item_bid = convert_ether(item['bestBid']['price'])
             item_sale_id = item['currentAsk']['id']
-            pblue('\nCollection Name: ' + white + collection_name + ' #' + str(item_id))
-            # pblue('Collection Floor: ' + white + str(collection_floor) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(collection_floor) * get_avax_price())) + ')')
+            item_num += 1
+            pyellow('\nItem Number: ' + white + str(item_num))
+            pblue('Collection Name: ' + white + collection_name + ' #' + str(item_id))
             if item_ranking == None:
                 pblue('Item Ranking: ' + red + 'No Rarity Ranking')
             else:    
                 pblue('Item Ranking: ' + white + str(item_ranking))
-            pblue('Item Price: ' + white + str(item_price) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(item_price) * avax_price)) + ')')
+            pblue('Item Price: ' + white + str(item_price) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(item_price) * avax_price)) + ') ' + red + '[+ ' + str('%.2f' % avax_difference) + ' AVAX] ' + '[+ $' + str('%.2f' % usd_difference) + ' USD]')
             if item_bid == None:
                 pblue('Item Highest Bid: ' + red + 'No Bids')
             else:
-                pblue('Item Highest Bid: ' + white + str(item_bid) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(item_bid) * avax_price)) + ')')
-            pblue('Item Sale ID: ' + white + str(item_sale_id))
+                pblue('Item Highest Bid: ' + white + str(item_bid) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(item_bid) * avax_price)) + ')' + red + ' [' + str('%.2f' % (float(item_bid) - float(item_price))) + ' AVAX] ' + '[$ ' + str('%.2f' % ((float(item_bid) - float(item_price)) * avax_price)) + ' USD]')
+            pblue('Item URL: ' + white + 'https://joepegs.com/item/' + collection_address + '/' + str(item_id))
+        pblue('\nTotal Items Found: ' + white + str(total_items))
+        pblue('Collection Floor: ' + white + str(collection_floor) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(collection_floor) * avax_price)) + ')')
+    
 
 ########################################
 #  Get Specific Item Info by Attribute #
 ########################################        
 
 def query_collection_fs_by_attribute(_collection_address, _encoded_attributes):
-    fs_by_attribute = requests.get('https://api.joepegs.dev/v2/items?collectionAddress=' + _collection_address + '&filters=buy_now&orderBy=price_asc&attributeFilters=' + _encoded_attributes, headers=headers).json()
+    fs_by_attribute = requests.get('https://api.joepegs.dev/v2/items?collectionAddress=' + _collection_address + '&filters=buy_now&orderBy=price_asc&pageSize=100&attributeFilters=' + _encoded_attributes, headers=headers).json()
     parse_fs_by_attribute(fs_by_attribute)
 
 ###############################
