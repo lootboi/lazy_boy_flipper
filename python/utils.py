@@ -1,9 +1,12 @@
-from menu       import get_collection_address_user, collections_info_options, get_collection_item, get_attribute, get_attribute_value
-from colors     import pblue, pred, white, yellow, red, pyellow, lgreen
-from dotenv     import load_dotenv
-from web3       import Web3
+from discord_util   import discord_alert
+from transactions   import purchase_nft
+from menu           import get_collection_address_user, collections_info_options, get_collection_item, get_attribute, get_attribute_value
+from colors         import pblue, pred, white, yellow, red, pyellow, lgreen
+from dotenv         import load_dotenv
+from web3           import Web3
 
 import os
+import time
 import requests
 import urllib.parse
 
@@ -93,39 +96,6 @@ def query_collection_info(collection_response):
     else:
         pred('No Website Listed')
     print()
-
-############################
-#   Collection Info Menu   #
-############################
-
-def collection_info():
-    menu_response = collections_info_options()
-    if menu_response == '1':
-        print()
-        pblue('View Collection Info')
-        collection_response = get_collection_address_user()
-        if w3.isAddress(collection_response):
-            print()
-            query_collection_info(collection_response)
-            collection_info()
-        else:
-            pred('Invalid Address - Try Again')
-            get_collection_address_user()
-    if menu_response == '2':
-        print('Search for Collection Item')
-        collection_address = get_collection_address_user()
-        item_id = get_collection_item()
-        get_item_info(collection_address, item_id)
-        collection_info()
-    if menu_response == '3':
-        get_collection_by_attribute()
-        collection_info()
-    if menu_response == '4':
-        print('Exiting...')
-        exit()
-    if menu_response != '1' or '2' or '3' or '4':
-        pred('\nInvalid Response - Try Again')
-        collection_info()
 
 ########################################
 #   Convert Collection Names for URL   #
@@ -263,31 +233,31 @@ def parse_fs_by_attribute(_query_response):
             pblue('Item URL: ' + white + 'https://joepegs.com/item/' + collection_address + '/' + str(item_id))
         pblue('\nTotal Items Found: ' + white + str(total_items))
         pblue('Collection Floor: ' + white + str(collection_floor) + ' AVAX' + yellow + ' ($' + str('%.2f' % (float(collection_floor) * avax_price)) + ')')
-    
+
 
 ########################################
 #  Get Specific Item Info by Attribute #
 ########################################        
 
 def query_collection_fs_by_attribute(_collection_address, _encoded_attributes):
-    fs_by_attribute = requests.get('https://api.joepegs.dev/v2/items?collectionAddress=' + _collection_address + '&filters=buy_now&orderBy=price_asc&pageSize=100&attributeFilters=' + _encoded_attributes, headers=headers).json()
-    parse_fs_by_attribute(fs_by_attribute)
+    response = requests.get('https://api.joepegs.dev/v2/items?collectionAddress=' + _collection_address + '&filters=buy_now&orderBy=price_asc&pageSize=100&attributeFilters=' + _encoded_attributes, headers=headers).json()
+    return response
 
 ###############################
 #   Encode attribute filter   #
 ###############################
 
-def encode_attributes(_collection_address, _attribute, _attribute_value):
+def encode_attributes(_attribute, _attribute_value):
     attribute_filter = '[{"traitType": "' + _attribute + '", "values":["' + _attribute_value + '"]}]'
     _encoded_attributes = urllib.parse.quote(attribute_filter)
-    query_collection_fs_by_attribute(_collection_address, _encoded_attributes)
+    return _encoded_attributes
 
 ################################
 #    Get Collection Buy Now    #
 ################################  
 
-def list_collection_buy_now(_collection_address):
-    collection_listed = requests.get('https://api.joepegs.dev/v2/items?filters=buy_now&orderBy=rarity_desc&collectionAddress=' + _collection_address, headers=headers).json()
+def list_collection_buy_now(collection_address, encoded_attributes):
+    collection_listed = requests.get('https://api.joepegs.dev/v2/items?filters=buy_now&orderBy=rarity_desc&collectionAddress=' + collection_address + '&attributeFilters=' + encoded_attributes, headers=headers).json()
     return collection_listed
 
 ##################################
@@ -340,4 +310,28 @@ def get_collection_by_attribute():
     _attribute = get_attribute()
     get_values(_collection_address, _attribute)
     _attribute_value = get_attribute_value()
-    encode_attributes(_collection_address, _attribute, _attribute_value)
+    _encoded_attribute = encode_attributes(_attribute, _attribute_value)
+    return _collection_address, _encoded_attribute
+
+def scan_attributes(collection_address, encoded_attributes, scan_interval, is_buy, want_alert, max_price):
+    currently_listed = list_collection_buy_now(collection_address, encoded_attributes)
+    if len(currently_listed) > 0:
+        for item in currently_listed:
+            if convert_ether(item['currentAsk']['price']) <= max_price:
+                ask_id = item['currentAsk']['id']
+                item_collection = item['collectionName']
+                item_collection_id = item['tokenId']
+                item_price = convert_ether(item['currentAsk']['price'])
+                item_rarity = item['rarityRanking']
+                item_img = item['collectionPfpUrl']
+                if want_alert == True and is_buy == False:
+                    discord_alert(item_collection, item_price, item_rarity, item_img)
+                if want_alert == True and is_buy == True:
+                    discord_alert(item_collection, item_price, item_rarity, item_img)
+                    purchase_nft(ask_id, item_price)
+    else:
+        pred('No listings found')
+
+    pyellow('\nScanning...')
+    time.sleep(float(scan_interval))
+    scan_attributes(collection_address, encoded_attributes, scan_interval, is_buy, want_alert, max_price)

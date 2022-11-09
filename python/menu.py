@@ -30,13 +30,11 @@ def menu():
 #################################
 
 def menu_options():
-    print()
-    pyellow('Please select an option:')
+    pyellow('\nPlease select an option:')
     pwhite('1) Test Connection')
     pwhite('2) Trending Collections')
     pwhite('3) Search for Collection')
-    pwhite('4) Exit')
-    print()
+    pwhite('4) Exit\n')
     response = input('Select option: ')
     return response
 
@@ -45,35 +43,42 @@ def menu_options():
 #####################################
 
 def collections_info_options():
-    print()
-    pblue('Search for a collection')
-    print()
+    pblue('\nSearch for a collection\n')
     pyellow('Please select an option:')
     pwhite('1) View Collection Info')
     pwhite('2) View Specific Collection Item Info')
     pwhite('3) View collection Items based on attribute')
-    pwhite('4) Exit')
-    print()
+    pwhite('4) Scan collection for new listings based off of attributes')
+    pwhite('5) Exit\n')
     response = input('Select option: ')
     return response
+
+###########################
+#   Select Buy or Alert   #
+###########################
+
+def alert_or_buy():
+    pyellow('\nIn response to finding listings, what should the script do?')
+    pwhite('1) Alert me through Discord')
+    pwhite('2) Attempt to purchase then Alert me through Discord')
+    action = input('Select option: ')
+    return action
 
 ##########################################
 #      User input Collection Address     #
 ##########################################
 
 def get_collection_address_user():
-    print()
-    pyellow('Please enter the collection Address:' + white)
-    response = input('Enter Collection Address: ')
-    return response
+    pyellow('\nPlease enter the collection Address:' + white)
+    address = input('Enter Collection Address: ')
+    return address
 
 ###############################
 #      User input Item ID     #
 ###############################
 
 def get_collection_item():
-    print()
-    pyellow('Please enter the collection Item ID:' + white)
+    pyellow('\nPlease enter the collection Item ID:' + white)
     id_number = input('Enter Item ID: ')
     return id_number
 
@@ -82,8 +87,7 @@ def get_collection_item():
 ###########################################
 
 def get_attribute():
-    print()
-    pyellow('Please enter the collection Attribute you want to look for:\n(Match Casing For Successful Query)' + white)
+    pyellow('\nPlease enter the collection Attribute you want to look for:\n(Match Casing For Successful Query)' + white)
     attribute = input('Enter Attribute: ')
     return attribute
 
@@ -92,7 +96,20 @@ def get_attribute():
 ###########################################
 
 def get_attribute_value():
-    print()
-    pyellow('Please enter the collection Attribute Type you want to look for:\n(Match Casing For Successful Query)' + white)
+    pyellow('\nPlease enter the collection Attribute Type you want to look for:\n(Match Casing For Successful Query)' + white)
     attribute_value = input('Enter Attribute Value: ')
     return attribute_value
+
+#################################
+#     Get Interval for Scan     #
+#################################
+
+def get_interval():
+    pyellow('\nHow often should we scan for new listings?')
+    interval = input('Enter Interval: ')
+    return interval
+
+def get_max_price():
+    pyellow('\nWhat is the highest price you want to filter for?')
+    max_price = input('Enter Max Price (AVAX):')
+    return max_price
