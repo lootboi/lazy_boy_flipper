@@ -257,7 +257,8 @@ def encode_attributes(_attribute, _attribute_value):
 ################################  
 
 def list_collection_buy_now(collection_address, encoded_attributes):
-    collection_listed = requests.get('https://api.joepegs.dev/v2/items?filters=buy_now&orderBy=rarity_desc&collectionAddress=' + collection_address + '&attributeFilters=' + encoded_attributes, headers=headers).json()
+    query = 'https://api.joepegs.dev/v2/items?filters=buy_now&orderBy=rarity_desc&collectionAddress=' + collection_address + '&attributeFilters=' + encoded_attributes
+    collection_listed = requests.get(query, headers=headers).json()
     return collection_listed
 
 ##################################
@@ -313,6 +314,10 @@ def get_collection_by_attribute():
     _encoded_attribute = encode_attributes(_attribute, _attribute_value)
     return _collection_address, _encoded_attribute
 
+###############################################
+#    Scan for NFTs based off of attributes    #
+###############################################
+
 def scan_attributes(collection_address, encoded_attributes, scan_interval, is_buy, want_alert, max_price):
     currently_listed = list_collection_buy_now(collection_address, encoded_attributes)
     if len(currently_listed) > 0:
@@ -323,11 +328,12 @@ def scan_attributes(collection_address, encoded_attributes, scan_interval, is_bu
                 item_collection_id = item['tokenId']
                 item_price = convert_ether(item['currentAsk']['price'])
                 item_rarity = item['rarityRanking']
-                item_img = item['collectionPfpUrl']
+                item_img = item['metadata']['image']
+                item_pfp = item['collectionPfpUrl']
                 if want_alert == True and is_buy == False:
-                    discord_alert(item_collection, item_price, item_rarity, item_img)
+                    discord_alert(item_collection, item_price, item_rarity, item_img, item_collection_id, item_pfp)
                 if want_alert == True and is_buy == True:
-                    discord_alert(item_collection, item_price, item_rarity, item_img)
+                    discord_alert(item_collection, item_price, item_rarity, item_img, item_collection_id, item_pfp)
                     purchase_nft(ask_id, item_price)
     else:
         pred('No listings found')

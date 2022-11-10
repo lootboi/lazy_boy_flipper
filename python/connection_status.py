@@ -16,11 +16,11 @@ headers = {'x-joepegs-api-key': key}
 # Get the data from the API
 test_response = requests.get('https://api.joepegs.dev/v2/', headers=headers).json()
 
-def check_status_code(_response):
+def check_status_code(response):
     print()
     pblue('Checking Status Code...')
-    if _response:
+    if len(response) == 0:
         print()
         pgreen('Connection to API successful - Status Code: ' + white + '200')
     else:
-        print(red + 'Error: ' + str(_response.status_code) + white + ' - ' + _response.reason)
+        print(red + 'Error: ' + str(response.status_code) + white + ' - ' + response.reason)
