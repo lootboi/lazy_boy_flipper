@@ -17,14 +17,3 @@ def visualize_attributes(attributes):
         plt.simple_bar(types_array, value_count, width = 100, title = yellow + 'Distribution of ' + traits + ' types' + white)
         plt.show()
         print('\n')
-
-
-
-
-    # print(collection_attributes)
-    # attribute_values = []
-    # for attribute in collection_attributes:
-    #     print('hi')
-
-    # plt.simple_bar(pizzas, percentages, width = 100, title = 'Most Favored Pizzas in the World')
-    # plt.show()
