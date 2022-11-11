@@ -3,6 +3,7 @@ from connection_status      import check_status_code
 from colors                 import pred, pblue
 from menu                   import menu, menu_options, get_collection_address_user, get_collection_item, get_interval, collections_info_options, alert_or_buy, get_max_price
 from utils                  import trending_collections, get_collection_by_attribute, query_collection_fs_by_attribute, parse_fs_by_attribute, scan_attributes, print_collection_overview, get_collection_overview, get_item_overview, parse_collection_attributes, parse_item_attributes
+
 #####################################
 #   Collection info Menu decisions  #
 #####################################
