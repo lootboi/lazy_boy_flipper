@@ -44,8 +44,9 @@ def select_collection_info_option():
     elif response == '5':
         collection_address = get_collection_address_user()
         query_response = get_collection_overview(collection_address)
-        collection_attributes = query_response['attributes']
-        visualize_attributes(collection_attributes)
+        visualize_attributes(query_response)
+        pblue('\nWhat else would you like to do?')
+        select_collection_info_option()
     elif response == '6':
         pblue('Exiting...')
         exit()
