@@ -5,8 +5,7 @@ from colors import pblue, pyellow, pwhite, yellow, blue, white
 #####################
 
 def menu():
-    print()
-    pblue('                  looter_')
+    pblue('\n                  looter_')
     pblue('                    Y8888b,')
     pblue('                  ,oA8888888b,')
     pblue('            ,aaad8888888888888888bo')
@@ -33,7 +32,7 @@ def menu_options():
     pyellow('\nPlease select an option:')
     pwhite('1) Test Connection')
     pwhite('2) Trending Collections')
-    pwhite('3) Search for Collection')
+    pwhite('3) Collection options')
     pwhite('4) Exit\n')
     response = input('Select option: ')
     return response
@@ -45,11 +44,12 @@ def menu_options():
 def collections_info_options():
     pblue('\nSearch for a collection\n')
     pyellow('Please select an option:')
-    pwhite('1) View Collection Info')
-    pwhite('2) View Specific Collection Item Info')
-    pwhite('3) View collection Items based on attribute')
+    pwhite('1) Get Collection Overview')
+    pwhite('2) View Item Info')
+    pwhite('3) View Items based on Attribute')
     pwhite('4) Scan collection for new listings based off of attributes')
-    pwhite('5) Exit\n')
+    pwhite('5) Visualize Collection Attribute Data')
+    pwhite('6) Exit\n')
     response = input('Select option: ')
     return response
 

@@ -13,14 +13,11 @@ key = os.getenv('API_KEY')
 # Create Authentification header
 headers = {'x-joepegs-api-key': key}
 
-# Get the data from the API
-test_response = requests.get('https://api.joepegs.dev/v2/', headers=headers).json()
-
-def check_status_code(response):
-    print()
-    pblue('Checking Status Code...')
-    if len(response) == 0:
-        print()
-        pgreen('Connection to API successful - Status Code: ' + white + '200')
+def check_status_code():
+    pblue('\nChecking Status Code...')
+    test_response = requests.get('https://api.joepegs.dev/v2/sales/recent-taker-orders?pageSize=1', headers=headers)
+    status_code = test_response.status_code
+    if status_code == 200:
+        pgreen('\nConnection to API successful - Status Code: ' + white + str(status_code))
     else:
-        print(red + 'Error: ' + str(response.status_code) + white + ' - ' + response.reason)
+        print(red + '\nError: ' + str(status_code) + white + ' - ' + test_response.reason)
