@@ -21,7 +21,7 @@ def menu():
     pblue('Y`      `YP                                  ~~')
     pblue('`         `')
     pyellow('----------------------------------------------------')
-    pblue('Flip NFTs on the AVAX network' + '         Version: ' + white + '1.0.0')
+    pblue('Flip NFTs on Joepegs' + '                  Version: ' + white + '1.0.0')
     pyellow('----------------------------------------------------')
 
 #################################
