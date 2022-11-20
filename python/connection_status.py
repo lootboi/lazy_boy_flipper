@@ -8,7 +8,7 @@ import requests
 load_dotenv()
 
 # Get API key from .env file
-key = os.getenv('API_KEY')
+key = os.getenv('JOEPEG_API_KEY')
 
 # Create Authentification header
 headers = {'x-joepegs-api-key': key}

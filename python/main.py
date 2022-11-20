@@ -1,8 +1,8 @@
 from data_visualization     import visualize_attributes
 from connection_status      import check_status_code
 from colors                 import pred, pblue
-from menu                   import menu, menu_options, get_collection_address_user, get_collection_item, get_interval, collections_info_options, alert_or_buy, get_max_price
-from utils                  import trending_collections, get_collection_by_attribute, query_collection_fs_by_attribute, parse_fs_by_attribute, scan_attributes, print_collection_overview, get_collection_overview, get_item_overview, parse_collection_attributes, parse_item_attributes
+from menu                   import menu, menu_options, get_collection_address_user, get_collection_item, get_interval, collections_info_options, alert_or_buy, get_max_price, get_max_ranked, get_scan_option
+from utils                  import trending_collections, get_collection_by_attribute, query_collection_fs_by_attribute, parse_fs_by_attribute, scan_attributes, print_collection_overview, get_collection_overview, get_item_overview, parse_collection_attributes, parse_item_attributes, get_top_ranked, parse_top_items, scan_floor
 
 #####################################
 #   Collection info Menu decisions  #
@@ -34,14 +34,17 @@ def select_collection_info_option():
         pblue('\nWhat else would you like to do?')
         select_collection_info_option()
     elif response == '4':
-        [collection_address, encoded_attributes] = get_collection_by_attribute()
-        scan_interval = get_interval()
-        action = alert_or_buy()
-        max_price = float(get_max_price())
-        if action == '1':
-            scan_attributes(collection_address, encoded_attributes, scan_interval, False, True, max_price)
-        if action == '2':
-            scan_attributes(collection_address, encoded_attributes, scan_interval, True, True, max_price)
+        user_choice = get_scan_option()
+        if user_choice == '1':
+            [collection_address, encoded_attributes] = get_collection_by_attribute()
+            scan_interval = get_interval()
+            max_price = float(get_max_price())
+            scan_attributes(collection_address, encoded_attributes, scan_interval, max_price)
+        else:
+            collection_address = get_collection_address_user()
+            max_floor = get_max_price()
+            scan_interval = get_interval()
+            scan_floor(collection_address, max_floor, scan_interval)
     elif response == '5':
         collection_address = get_collection_address_user()
         query_response = get_collection_overview(collection_address)
@@ -49,6 +52,13 @@ def select_collection_info_option():
         pblue('\nWhat else would you like to do?')
         select_collection_info_option()
     elif response == '6':
+        item_num = get_max_ranked()
+        collection_address = get_collection_address_user()
+        query_response = get_top_ranked(collection_address, item_num)
+        parse_top_items(query_response, item_num)
+        pblue('\nWhat else would you like to do?')
+        select_collection_info_option()
+    elif response == '7':
         pblue('Exiting...')
         exit()
     else:

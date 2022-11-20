@@ -1,5 +1,4 @@
 from discord_util   import discord_alert
-from transactions   import purchase_nft
 from menu           import get_collection_address_user, collections_info_options, get_collection_item, get_attribute, get_attribute_value
 from colors         import pblue, pred, white, yellow, red, pyellow, lgreen, green, blue
 from dotenv         import load_dotenv
@@ -14,7 +13,7 @@ import urllib.parse
 load_dotenv()
 
 # Get API key from .env file
-key = os.getenv('API_KEY')
+key = os.getenv('JOEPEG_API_KEY')
 
 # Create Authentification header
 headers = {'x-joepegs-api-key': key}
@@ -69,7 +68,7 @@ def trending_collections():
     avax_price = get_avax_price()
     for collection in trending_collections:
         pblue(collection['collectionName'] + ' - ' + yellow +  collection['collectionId'])
-        pblue('Collection MarketPlace Link: ' + white + 'https://joepegs.com/collections/' + convert_url(collection['collectionName']))
+        pblue('Collection MarketPlace Link: ' + white + 'https://joepegs.com/collections/' + collection['collectionId'])
         website = get_collection_website(collection['collectionId'])
         pblue('Collection Website: ' + white + str(website))
         pblue('# of Items: ' + white + str(collection['numItems']))
@@ -78,7 +77,6 @@ def trending_collections():
     pblue('\nWould you like to do something else?')
 
 def print_collection_overview(query_response):
-
     collection_name = query_response['name']
     collection_desc = query_response['description']
     collection_address = query_response['address']
@@ -130,6 +128,48 @@ def print_collection_overview(query_response):
     pyellow('Twitter: ' + white + twitter_url)
     pyellow('Discord: ' + white + disc_url)
 
+############################
+#  Query Top Ranked Items  #
+############################
+
+def get_top_ranked(collection_address, item_num):
+    top_items = requests.get('https://api.joepegs.dev/v2/items?orderBy=rarity_asc&pageSize=' + item_num + '&collectionAddress=' + collection_address, headers=headers).json()
+    return top_items
+
+#########################
+#    Parse Top Items    #
+#########################
+
+def parse_top_items(items, item_num):
+    pyellow('\nShowing top ' + item_num + ' items')
+    test = items[0]['rarityRanking']
+    if test == None:
+        pred('\nSorry, but ranking is not available for this collection')
+    else:
+        avax_price = get_avax_price()
+        for item in items:
+            collection_address = item['collection']
+            item_id = str(item['tokenId'])
+            collection_name = item['collectionName']
+            item_ranking = str(item['rarityRanking'])
+            item_rarity = str(item['rarityScore'])
+            if item_rarity == 'None':
+                item_rarity = red + 'No item rarity available'
+            else:
+                item_rarity = white + item_rarity
+            item_ask = item['currentAsk']
+            item_price = ''
+            if item_ask == None:
+                item_ask = red + 'Item is not currently for sale'
+            else:
+                item_ask = str(convert_ether(item['currentAsk']['price']))
+                item_price = str(round(float(item_ask)*avax_price, 2))
+            pyellow('\n' + collection_name + ' #' + item_id)
+            pyellow('Rank: ' + white + item_ranking)
+            pyellow('Rarity Score: ' + item_rarity)
+            pyellow('Current ask price: ' + white + item_ask + ' AVAX ' + green + '($' + item_price + ')')
+            pyellow('Item Link: ' + white + 'https://joepegs.com/item/' + collection_address + '/' + item_id + '/')
+
 ###################################
 #   Parse Collection Attributes   #
 ###################################
@@ -154,6 +194,10 @@ def parse_item_attributes(item_attributes):
     pblue('\nItem Attributes:')
     for i  in  range(len(item_attributes)):
         pblue(item_attributes[i]['traitType'] + ': ' + white + item_attributes[i]['value'] + yellow + ' Count: ' + str(item_attributes[i]['count']) + green + ' (Rarity: ' + "%.2f" % (float(item_attributes[i]['countPercentage'])*100) + '%)')
+
+#########################
+#   Get Item Overview   #
+#########################
 
 def get_item_overview(collection_address, id_number):
     item_overview = requests.get('https://api.joepegs.dev/v2/collections/' + collection_address + '/tokens/' + id_number, headers=headers).json()
@@ -267,12 +311,21 @@ def encode_attributes(_attribute, _attribute_value):
     _encoded_attributes = urllib.parse.quote(attribute_filter)
     return _encoded_attributes
 
-################################
-#    Get Collection Buy Now    #
-################################  
+################################################
+#    Get Collection Buy Now Using Attributes   #
+################################################  
 
 def list_collection_buy_now(collection_address, encoded_attributes):
     query = 'https://api.joepegs.dev/v2/items?filters=buy_now&orderBy=rarity_desc&collectionAddress=' + collection_address + '&attributeFilters=' + encoded_attributes
+    collection_listed = requests.get(query, headers=headers).json()
+    return collection_listed
+
+###############################################
+#    Get Collection Buy Now Using Min Floor   #
+###############################################  
+
+def list_current_floor(collection_address):
+    query = 'https://api.joepegs.dev/v2/items?pagSize=10&filters=buy_now&orderBy=price_asc&collectionAddress=' + collection_address
     collection_listed = requests.get(query, headers=headers).json()
     return collection_listed
 
@@ -297,8 +350,6 @@ def get_collection_overview(collection_address):
 ####################################
 #      Get Attribute Types         #
 ####################################
-#NOTE:
-# - Allow users to input numbers to select attribute type
 
 def get_values(_collection_address, _attribute):
     collection = get_collection_overview(_collection_address)
@@ -312,9 +363,6 @@ def get_values(_collection_address, _attribute):
 ################################
 #   Query User for Item Info   #
 ################################
-#NOTE:
-# - Add in functionality to allow searches with multiple attributes
-# - Add in functionality to allow searches with multiple values for a single attribute
     
 def get_collection_by_attribute():
     pblue('\nSearch by Attribute')
@@ -330,7 +378,7 @@ def get_collection_by_attribute():
 #    Scan for NFTs based off of attributes    #
 ###############################################
 
-def scan_attributes(collection_address, encoded_attributes, scan_interval, is_buy, want_alert, max_price):
+def scan_attributes(collection_address, encoded_attributes, scan_interval, max_price):
     currently_listed = list_collection_buy_now(collection_address, encoded_attributes)
     if len(currently_listed) > 0:
         for item in currently_listed:
@@ -342,14 +390,33 @@ def scan_attributes(collection_address, encoded_attributes, scan_interval, is_bu
                 item_rarity = item['rarityRanking']
                 item_img = item['metadata']['image']
                 item_pfp = item['collectionPfpUrl']
-                if want_alert == True and is_buy == False:
-                    discord_alert(item_collection, item_price, item_rarity, item_img, item_collection_id, item_pfp)
-                if want_alert == True and is_buy == True:
-                    discord_alert(item_collection, item_price, item_rarity, item_img, item_collection_id, item_pfp)
-                    purchase_nft(ask_id, item_price)
+                discord_alert(item_collection, item_price, item_rarity, item_img, item_collection_id, item_pfp)
     else:
         pred('No listings found')
-
     pyellow('\nScanning...')
     time.sleep(float(scan_interval))
-    scan_attributes(collection_address, encoded_attributes, scan_interval, is_buy, want_alert, max_price)
+    scan_attributes(collection_address, encoded_attributes, scan_interval, max_price)
+
+#############################################
+#    Scan for NFTs based off of min floor   #
+#############################################
+
+def scan_floor(collection_address, max_floor, interval):
+    pyellow('\nBeginning scan for items priced at ' + max_floor + ' AVAX or less')
+    currently_listed = list_current_floor(collection_address)
+    for item in currently_listed:
+        if str(convert_ether(item['currentAsk']['price'])) <= max_floor:
+            ask_id = item['currentAsk']['id']
+            item_collection = item['collectionName']
+            item_collection_id = item['tokenId']
+            item_price = convert_ether(item['currentAsk']['price'])
+            item_rarity = item['rarityRanking']
+            item_img = item['metadata']['image']
+            item_pfp = item['collectionPfpUrl']
+            discord_alert(item_collection, item_price, item_rarity, item_img, item_collection_id, item_pfp)
+        else:
+            pred('Listing does not fit in the given parameters')
+    time.sleep(float(interval))
+    scan_floor(collection_address, max_floor, interval)
+    
+
