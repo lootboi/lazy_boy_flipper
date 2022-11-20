@@ -47,7 +47,7 @@ def collections_info_options():
     pwhite('1) Get Collection Overview')
     pwhite('2) View Item Info')
     pwhite('3) View Items based on Attribute')
-    pwhite('4) Scan Collection for New Listings based off of Attributes')
+    pwhite('4) Scan Options')
     pwhite('5) Visualize Collection Attribute Data')
     pwhite('6) Get Rarest Items (If Ranking is Available)')
     pwhite('7) Exit\n')
