@@ -3,12 +3,12 @@
 ![this is a flipper](./img/flipper.gif)
 
 **The lazy boy flipper excels at two different functionalities:**
-1. Finding and retreiving data concerning any collection available on the Joepegs Marketplace.
+1. Finding and retreiving data concerning any collection available on the [Joepegs Marketplace](https://joepegs.com/).
 2. Alerting the user of any new listings according to either attribute or floor parameters.
 
 While there are other community made tools, such as [Avalytics](https://www.avalytics.xyz/), that provide a lot of the same information, the lazy boy flipper is able to differentiate itself by allowing users to better visualize and utilize data concerning a collections NFT's. Where it does fall short, however, is in aggregating marketplace data from [Kalao](https://marketplace.kalao.io/) or [Campfire](https://campfire.exchange/) - but there's not a lot of volume on these other markeplaces so it's not that big of a loss ;)
 
-Initially I wanted this to purchase and list NFT's as well. However, Joepegs Marketplace is set up so that creating an ask order occurs off chain, and requires special permission to gain access to outside of their website. Because of this, creating listings is not feasible within the script - although pruchases still occur on-chain and I will eventually add this feature into the repository.
+Initially I wanted this to purchase and list NFT's as well. However, Joepegs Marketplace is set up so that creating an ask order occurs off chain, and requires special permission to gain access to outside of their website. Because of this, creating listings is not feasible within the script - although purchases still occur on-chain and I will eventually add this feature into the repository.
 
 This project is also **completely open-source**! so customize it, break it, and bastardize until you are content with the script.
 
