@@ -1,2 +1,5 @@
 .env
+env
 __pycache__
+colors.pyc
+data_visualization.pyc

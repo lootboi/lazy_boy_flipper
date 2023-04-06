@@ -323,14 +323,14 @@ def list_collection_buy_now(collection_address, encoded_attributes):
 ###############################################
 #    Get Collection Buy Now Using Min Floor   #
 ###############################################  
-
+# https://api.joepegs.dev/v3/items?filters=buy_now&orderBy=price_asc&collectionAddress=0xb5d5b4cd4303d985d83c228644b9ed10930a8152&Attributefilters=color%3DMocha
 def list_current_floor(collection_address):
     query = 'https://api.joepegs.dev/v2/items?pagSize=10&filters=buy_now&orderBy=price_asc&collectionAddress=' + collection_address
     collection_listed = requests.get(query, headers=headers).json()
     return collection_listed
 
 ##################################
-#    Get Collection Attributs    #
+#    Get Collection Attributes    #
 ##################################
 
 def get_collection_attributes(_collection_address):
@@ -338,6 +338,15 @@ def get_collection_attributes(_collection_address):
     pyellow('\n' + collection_attributes['name'] + ' Attributes:')
     for attribute in collection_attributes['attributes']:
         pblue('Attribute: ' + white + attribute['traitType'])
+
+##############################
+#    Get Attribute Floors    #
+##############################
+# https://api.joepegs.dev/v3/items?filters=buy_now&orderBy=price_asc&collectionAddress=0xb5d5b4cd4303d985d83c228644b9ed10930a8152&attributeFilters=color%3DMocha
+def get_attribute_floor(_collection_address, _attribute):
+    attribute_listing_response = requests.get('https://api.joepegs.dev/v2/collections?filters=buy_now?collectionAddress=' + _collection_address + '&attributeFilters=' + _attribute, headers=headers).json()
+
+
 
 ###################################
 #    Get Collection Overview      #

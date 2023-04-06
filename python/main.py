@@ -1,3 +1,5 @@
+import asyncio
+
 from data_visualization     import visualize_attributes
 from connection_status      import check_status_code
 from colors                 import pred, pblue
@@ -8,7 +10,7 @@ from utils                  import trending_collections, get_collection_by_attri
 #   Collection info Menu decisions  #
 #####################################
 
-def select_collection_info_option():
+async def select_collection_info_option():
     response = collections_info_options()
     if response == '1':
         collection_address = get_collection_address_user()
@@ -18,7 +20,7 @@ def select_collection_info_option():
         print_collection_overview(query_response)
         parse_collection_attributes(collection_attributes, collection_supply)
         pblue('\nWhat else would you like to do?')
-        select_collection_info_option()
+        await select_collection_info_option()
     elif response == '2':
         collection_address = get_collection_address_user()
         item_id = get_collection_item()
@@ -26,13 +28,13 @@ def select_collection_info_option():
         collection_attributes = query_response['metadata']['attributes']
         parse_item_attributes(collection_attributes)
         pblue('\nWhat else would you like to do?')
-        select_collection_info_option()
+        await select_collection_info_option()
     elif response == '3':
         [collection_address, encoded_attributes] = get_collection_by_attribute()
         query_response = query_collection_fs_by_attribute(collection_address, encoded_attributes)
         parse_fs_by_attribute(query_response)
         pblue('\nWhat else would you like to do?')
-        select_collection_info_option()
+        await select_collection_info_option()
     elif response == '4':
         user_choice = get_scan_option()
         if user_choice == '1':
@@ -48,47 +50,51 @@ def select_collection_info_option():
     elif response == '5':
         collection_address = get_collection_address_user()
         query_response = get_collection_overview(collection_address)
-        visualize_attributes(query_response)
+        await visualize_attributes(query_response, collection_address)
         pblue('\nWhat else would you like to do?')
-        select_collection_info_option()
+        await select_collection_info_option()
     elif response == '6':
         item_num = get_max_ranked()
         collection_address = get_collection_address_user()
         query_response = get_top_ranked(collection_address, item_num)
         parse_top_items(query_response, item_num)
         pblue('\nWhat else would you like to do?')
-        select_collection_info_option()
+        await select_collection_info_option()
     elif response == '7':
         pblue('Exiting...')
         exit()
     else:
         pred('Invalid option selected')
-        select_collection_info_option()
+        await select_collection_info_option()
 
 ############################
 #   Start initial Prompt   #
 ############################
 
-def select_start_option():
+async def select_start_option():
     response = menu_options()
     if response == '1':
         check_status_code()
-        select_start_option()
+        await select_start_option()
     elif response == '2':
         trending_collections()
-        select_start_option()
+        await select_start_option()
     elif response == '3':
-        select_collection_info_option()
+        await select_collection_info_option()
     elif response == '4':
         pblue('Exiting...')
         exit()
     else:
         pred('\nInvalid option selected')
-        select_start_option()
+        await select_start_option()
 
 #########################
 # How the Script Starts #
 #########################
 
-menu()
-select_start_option()
+async def main():
+    menu()
+
+    await select_start_option()
+
+asyncio.run(main())
