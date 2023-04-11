@@ -29,3 +29,5 @@ blue = Fore.BLUE
 green = Fore.GREEN
 yellow = Fore.YELLOW
 lgreen = Fore.LIGHTGREEN_EX
+lred = Fore.LIGHTRED_EX
+reset = Fore.RESET
