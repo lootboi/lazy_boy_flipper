@@ -15,7 +15,6 @@ from aiohttp import ClientTimeout
 # limit to 500 requests per second
 limiter = AsyncLimiter(500, 1)
 connector = TCPConnector(limit=500)
-avax_price = get_avax_price()
 
 
 async def single_request(url, session, semaphore, max_retries=3):
@@ -59,6 +58,8 @@ async def batch_attribute_request(semaphore, encoded_filters_array, collection_a
         return results
 
 async def visualize_attributes(attributes, collection_address):
+
+    avax_price = await get_avax_price()
 
     trait_type_array = []
     for attribute in attributes['attributes']:

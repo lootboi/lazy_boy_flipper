@@ -3,9 +3,11 @@ from menu           import get_collection_address_user, collections_info_options
 from colors         import pblue, pred, white, yellow, red, pyellow, lgreen, green, blue
 from dotenv         import load_dotenv
 from web3           import Web3
+from aiolimiter     import AsyncLimiter
 
 import os
 import time
+import aiohttp
 import requests
 import urllib.parse
 
@@ -17,6 +19,9 @@ key = os.getenv('JOEPEG_API_KEY')
 
 # Create Authentification header
 headers = {'x-joepegs-api-key': key}
+
+# API call limiter
+limiter = AsyncLimiter(450, 1)
 
 # Get RPC URL from .env file
 rpc_url = os.getenv('RPC_URL')
@@ -35,10 +40,14 @@ def convert_ether(wei):
 #   Current Price   #
 #####################
 
-def get_avax_price():
-    response = requests.get('https://api.coingecko.com/api/v3/simple/price?ids=avalanche-2&vs_currencies=usd').json()
-    avax_price = response['avalanche-2']['usd']
-    return avax_price
+async def get_avax_price():
+    url = "https://api.coingecko.com/api/v3/simple/price?ids=avalanche-2&vs_currencies=usd"
+    async with aiohttp.ClientSession() as session:
+        async with limiter:  # Use the same limiter as other requests
+            async with session.get(url) as response:
+                data = await response.json()
+                return data["avalanche-2"]["usd"]
+
 
 ########################################
 #   Convert Collection Names for URL   #
